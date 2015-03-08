@@ -17,6 +17,7 @@
     <orderEntry type="library" name="Leiningen: clojure-complete:0.2.3" level="project" />
     <orderEntry type="library" name="Leiningen: feedparser-clj:0.2" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/clojure:1.6.0" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/core.async:0.1.346.0-17112a-alpha" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/data.json:0.2.5" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/tools.nrepl:0.2.3" level="project" />
     <orderEntry type="library" name="Leiningen: cheshire:5.3.1" level="project" />
@@ -51,5 +52,11 @@
     <orderEntry type="library" name="Leiningen: org.clojure/clojure-contrib:1.2.0" level="project" />
     <orderEntry type="library" name="Leiningen: org.jdom/jdom:1.1" level="project" />
     <orderEntry type="library" name="Leiningen: jdom:1.0" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/tools.analyzer.jvm:0.1.0-beta12" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/core.memoize:0.5.6" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/tools.analyzer:0.1.0-beta12" level="project" />
+    <orderEntry type="library" name="Leiningen: org.ow2.asm/asm-all:4.1" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/core.cache:0.6.3" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/data.priority-map:0.0.2" level="project" />
   </component>
 </module>

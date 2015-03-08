@@ -1,46 +1,6 @@
 (ns sheetdb.core
-  (:require [clj-http.client :as client]
-            [clojure.set :as set]
-            [clojure.core :refer [keyword]]
-            [clojure.data.json :as json]
-            [feedparser-clj.core :as feed]))
-
-(def sheet-key "1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w")
-
-(defn- url [key]
-  (str "https://spreadsheets.google.com/feeds/list/" key "/od6/public/values?alt=json"))
-
-; atom feed as a map - use this for configuration later
-;(feed/parse-feed "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values?alt\\u003djson")
-
-(defn- get-data
-  "[sheet-key] Gets the entire spreadsheet with the given key"
-  [sheet-key]
-  (client/get (url sheet-key)))
-
-(def data (json/read-str ((get-data sheet-key) :body)))
-
-; list of the entries
-; [{"gsx$name" {"$t" "sarah conner"},
-;  "gsx$rank" {"$t" "chief survivor"},
-;  "id" {"$t" "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cokwr"},
-;  "gsx$id" {"$t" "1"}},
-;  {"gsx$name" {"$t" "john conner"},
-;   "gsx$rank" {"$t" "robot killer"},
-;   "id" {"$t" "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cpzh4"},
-;   "gsx$id" {"$t" "2"}}]
-; want:
-;{"https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cokwr"
-; {"gsx$name" {"$t" "sarah conner"},
-;  "gsx$rank" {"$t" "chief survivor"},
-;  "id" {"$t" "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cokwr"},
-;  "gsx$id" {"$t" "1"}}
-; "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cpzh4"
-; {"gsx$name" {"$t" "john conner"},
-;  "gsx$rank" {"$t" "robot killer"},
-;  "id" {"$t" "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cpzh4"},
-;  "gsx$id" {"$t" "2"}}}
-(def entries ((data "feed") "entry"))
+  (:require [clojure.core.async :as async]
+            [sheetdb.subscribe :as sub]))
 
 (def gsx-prefix "gsx$")
 ; TODO: make which field to use as an id configurable
@@ -78,7 +38,7 @@
         ; get a lazy sequence of the user columns, ignore the other columns
         cols (seq (user-col-keys ent))
         ; formatted column names
-        stripped-col-names (map #(strip-prefix %) (seq (user-col-keys ent)))
+        stripped-col-names (map #(strip-prefix %) cols)
         stripped-col-keywords (map #(keyword %) stripped-col-names)
         ; filtering which values to pluck out of the sheet by which values are user entered
         vs (map #(ent %) cols)
@@ -90,5 +50,17 @@
 (defn convert-rows [ents]
   (into {} (map #(convert-row %) ents)))
 
-(convert-rows entries)
+(defn callback [entry]
+  (convert-row entry))
+
+(let [c (sub/<entries)]
+  (async/go (async/>! c (entries 1)))
+  (prn "just put on, haven't registered callback")
+  (callback (async/<!! (async/go (async/<! c))))
+  (prn "registered callback")
+  (async/close! c))
+
+
+
+
 ;;
