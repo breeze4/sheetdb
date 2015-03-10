@@ -7,4 +7,6 @@
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [clj-http "1.0.1"]
                  [org.clojure/data.json "0.2.5"]
-                 [feedparser-clj "0.2"]])
+                 [feedparser-clj "0.2"]
+                 [overtone/at-at "1.2.0"]
+                 [clj-time "0.9.0"]])

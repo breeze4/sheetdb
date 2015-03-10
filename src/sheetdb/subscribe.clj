@@ -1,16 +1,15 @@
 (ns sheetdb.subscribe
   (:require [clj-http.client :as client]
             [clojure.data.json :as json]
-            [clojure.core.async :as async]
+            [clojure.core.async
+             :refer [>! <! >!! <!! put! take! go chan buffer close! thread
+                     alts! alts!! timeout]]
             [feedparser-clj.core :as feed]))
 
 (def sheet-key "1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w")
 
 (defn- url [key]
   (str "https://spreadsheets.google.com/feeds/list/" key "/od6/public/values?alt=json"))
-
-; atom feed as a map - use this for configuration later
-;(feed/parse-feed "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values?alt\\u003djson")
 
 (defn- get-data
   "[sheet-key] Gets the entire spreadsheet with the given key"
@@ -44,16 +43,16 @@
 (defn- callback [payload]
   (prn "callback: " payload))
 
-(def <entries (async/chan))
+(def <entries (chan))
 
 (defn put-entry []
-  (async/go (async/>! <entries (entries 1)))
+  (go (>! <entries (entries 1)))
   (prn "just put on, didn't registered callback"))
 
 (put-entry)
 
-(async/go (callback (async/<! <entries)))
+(go (callback (<! <entries)))
 (prn "registered callback")
-(async/close! <entries)
+(close! <entries)
 
 ;;

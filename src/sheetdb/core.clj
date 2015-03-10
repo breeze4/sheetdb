@@ -50,17 +50,4 @@
 (defn convert-rows [ents]
   (into {} (map #(convert-row %) ents)))
 
-(defn callback [entry]
-  (convert-row entry))
-
-(let [c (sub/<entries)]
-  (async/go (async/>! c (entries 1)))
-  (prn "just put on, haven't registered callback")
-  (callback (async/<!! (async/go (async/<! c))))
-  (prn "registered callback")
-  (async/close! c))
-
-
-
-
 ;;
