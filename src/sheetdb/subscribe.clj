@@ -49,10 +49,10 @@
   (go (>! <entries (entries 1)))
   (prn "just put on, didn't registered callback"))
 
-(put-entry)
-
-(go (callback (<! <entries)))
-(prn "registered callback")
-(close! <entries)
+;(put-entry)
+;
+;(go (callback (<! <entries)))
+;(prn "registered callback")
+;(close! <entries)
 
 ;;
