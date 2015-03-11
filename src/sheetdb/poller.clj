@@ -1,6 +1,9 @@
 (ns sheetdb.poller
   (:require [overtone.at-at :refer :all]
             [feedparser-clj.core :as feed]
+            [clojure.core.async
+             :refer [>! <! >!! <!! put! take! go go-loop chan buffer close! thread
+                     alts! alts!! timeout onto-chan pipeline]]
             [clj-time.core :as t])
   (:import (java.util Date)))
 
@@ -22,22 +25,23 @@
   ((first (feed :entries)) :updated-date))
 
 ; want to schedule a poller to check the feed every 5 minutes for updates
-(defn- check-for-update [atom-url]
+(defn- check-for-update [out-ch atom-url]
   (let [feed (feed/parse-feed atom-url)
         feed-updated (.getTime (feed-last-updated feed))]
     (println "polling...")
-    (if (> feed-updated (@last-updated :date))
+    (if (> feed-updated (get-in @last-updated [atom-url :date]))
       (do
         (swap! last-updated assoc-in [atom-url :date] feed-updated)
-        (println "found an update!")))))
+        (println "found an update!")
+        (put! out-ch feed)))))
 
 ; schedule:
 (defn start-poller
-  ([pool] (every 60000 #(check-for-update atom-url) pool))
-  ([pool t] (every t #(check-for-update atom-url) pool)))
+  ([out-ch pool] (start-poller out-ch pool 60000))
+  ([out-ch pool t] (every t #(check-for-update out-ch atom-url) pool)))
 
 (def pool (atom {:pool (mk-pool)}))
-(start-poller (@pool :pool))
+(start-poller (@pool :pool) 5000)
 (stop 1 (@pool :pool))
 
 ;;

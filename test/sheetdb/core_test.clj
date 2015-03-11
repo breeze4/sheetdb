@@ -1,6 +1,6 @@
 (ns sheetdb.core-test
   (:require [clojure.test :refer :all]
-            [sheetdb.core :refer :all]))
+            [sheetdb.conversion :refer :all]))
 
 ; list of the entries
 ; [{"gsx$name" {"$t" "sarah conner"},

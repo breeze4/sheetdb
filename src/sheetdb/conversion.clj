@@ -1,6 +1,7 @@
-(ns sheetdb.core
-  (:require [clojure.core.async :as async]
-            [sheetdb.subscribe :as sub]))
+(ns sheetdb.conversion
+  (:require [clojure.core.async
+             :refer [>! <! >!! <!! put! take! go go-loop chan buffer close! thread
+                     alts! alts!! timeout onto-chan pipeline]]))
 
 (def gsx-prefix "gsx$")
 ; TODO: make which field to use as an id configurable
