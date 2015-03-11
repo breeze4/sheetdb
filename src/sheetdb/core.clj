@@ -50,4 +50,7 @@
 (defn convert-rows [ents]
   (into {} (map #(convert-row %) ents)))
 
+
+(defn initialize []
+  ())
 ;;

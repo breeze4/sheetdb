@@ -38,6 +38,6 @@
 
 (def pool (atom {:pool (mk-pool)}))
 (start-poller (@pool :pool))
-(stop 2 (@pool :pool))
+(stop 1 (@pool :pool))
 
 ;;

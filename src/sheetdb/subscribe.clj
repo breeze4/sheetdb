@@ -18,26 +18,6 @@
 
 (def data (json/read-str ((get-data sheet-key) :body)))
 
-; list of the entries
-; [{"gsx$name" {"$t" "sarah conner"},
-;  "gsx$rank" {"$t" "chief survivor"},
-;  "id" {"$t" "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cokwr"},
-;  "gsx$id" {"$t" "1"}},
-;  {"gsx$name" {"$t" "john conner"},
-;   "gsx$rank" {"$t" "robot killer"},
-;   "id" {"$t" "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cpzh4"},
-;   "gsx$id" {"$t" "2"}}]
-; want:
-;{"https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cokwr"
-; {"gsx$name" {"$t" "sarah conner"},
-;  "gsx$rank" {"$t" "chief survivor"},
-;  "id" {"$t" "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cokwr"},
-;  "gsx$id" {"$t" "1"}}
-; "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cpzh4"
-; {"gsx$name" {"$t" "john conner"},
-;  "gsx$rank" {"$t" "robot killer"},
-;  "id" {"$t" "https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values/cpzh4"},
-;  "gsx$id" {"$t" "2"}}}
 (def entries ((data "feed") "entry"))
 
 (defn- callback [payload]
@@ -49,8 +29,11 @@
   (go (>! <entries (entries 1)))
   (prn "just put on, didn't registered callback"))
 
+; start poller, when the poller sees there is an update to the feed, it calls
+; a function
+(defn subscribe [feed-url])
 ;(put-entry)
-;
+
 ;(go (callback (<! <entries)))
 ;(prn "registered callback")
 ;(close! <entries)
