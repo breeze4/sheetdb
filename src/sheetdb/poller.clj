@@ -25,8 +25,25 @@
   ((first (feed :entries)) :updated-date))
 
 ; want to schedule a poller to check the feed every 5 minutes for updates
+; would be nice to not have the synchronous call to feed/parse-feed here
+; could put it on a channel and take it once its available
+; experiment with (thread..) macro
+; what does let binding form do with a (thread) macro?
+
+; simulate the external service call
+(defn get-val []
+  (do
+    (Thread/sleep 2000)
+    "the value"))
+
+; returns the channel and prints the value it got
+(defn out-ch []
+  (let [ch (thread (get-val))]
+    (go (prn (<! ch))
+        (close! ch))))
+
 (defn- check-for-update [out-ch atom-url]
-  (let [feed (feed/parse-feed atom-url)
+  (let [feed (thread (feed/parse-feed atom-url))
         feed-updated (.getTime (feed-last-updated feed))]
     (println "polling...")
     (if (> feed-updated (get-in @last-updated [atom-url :date]))
@@ -40,7 +57,9 @@
   ([out-ch pool] (start-poller out-ch pool 60000))
   ([out-ch pool t] (every t #(check-for-update out-ch atom-url) pool)))
 
+; create and return pool
 (def pool (atom {:pool (mk-pool)}))
+
 (start-poller (@pool :pool) 5000)
 (stop 1 (@pool :pool))
 
