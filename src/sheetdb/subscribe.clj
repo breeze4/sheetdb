@@ -20,7 +20,6 @@
 
 (def entries ((data "feed") "entry"))
 
-
 (defn feed-chan [feed-url]
   "Gets the feed from the feed URL"
   (let [feed (thread (client/get feed-url))]

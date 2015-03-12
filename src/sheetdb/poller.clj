@@ -31,26 +31,30 @@
 ; what does let binding form do with a (thread) macro?
 
 ; simulate the external service call
+(def entries (feed/parse-feed atom-url))
 (defn get-val []
   (do
     (Thread/sleep 2000)
-    "the value"))
+    entries))
 
 ; returns the channel and prints the value it got
 (defn out-ch []
-  (let [ch (thread (get-val))]
-    (go (prn (<! ch))
-        (close! ch))))
+  (let [ch (thread (get-val))
+        val (<!! ch)]
+    (close! ch)
+    val))
 
 (defn- check-for-update [out-ch atom-url]
-  (let [feed (thread (feed/parse-feed atom-url))
+  (let [feed (<!! (thread (feed/parse-feed atom-url)))
         feed-updated (.getTime (feed-last-updated feed))]
     (println "polling...")
     (if (> feed-updated (get-in @last-updated [atom-url :date]))
       (do
         (swap! last-updated assoc-in [atom-url :date] feed-updated)
-        (println "found an update!")
-        (put! out-ch feed)))))
+        (for [e (feed :entries)]
+          (do
+            (prn "found an update!" e)
+            (put! out-ch e)))))))
 
 ; schedule:
 (defn start-poller
@@ -60,7 +64,7 @@
 ; create and return pool
 (def pool (atom {:pool (mk-pool)}))
 
-(start-poller (@pool :pool) 5000)
-(stop 1 (@pool :pool))
+;(start-poller (@pool :pool) 5000)
+;(stop 1 (@pool :pool))
 
 ;;
