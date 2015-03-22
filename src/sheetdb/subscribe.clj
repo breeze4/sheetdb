@@ -1,6 +1,5 @@
 (ns sheetdb.subscribe
-  (:require [sheetdb.conversion :as convert]
-            [clj-http.client :as client]
+  (:require [clj-http.client :as client]
             [clojure.data.json :as json]
             [clojure.core.async
              :refer [>! <! >!! <!! put! take! go go-loop chan buffer close! thread
@@ -28,29 +27,11 @@
 ; now to put on a channel for the core to consume
 (def <entries (chan))
 
-(defn put-entry [ent]
-  (>!! <entries ent)
-  (prn "just put on"))
-
-(defn put-entries [ch ents]
-  (onto-chan ch ents))
-; self-closing channel
-
 (defn wait-on-ch [ch]
   (go-loop []
     (let [e (<! ch)]
       (prn e))
     (recur)))
 
-;(defn spy-on [ch]
-;  (go-loop []
-;    (let [x (<! ch)]
-;      (println "Got a value in this loop:" x))
-;    (recur)))
-
-
-;(go (callback (<! <entries)))
-;(prn "registered callback")
-;(close! <entries)
 
 ;;

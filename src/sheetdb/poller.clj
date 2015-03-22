@@ -7,19 +7,9 @@
             [clj-time.core :as t])
   (:import (java.util Date)))
 
-(def sheet-key "1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w")
 
-(defn- url [key]
-  (str "https://spreadsheets.google.com/feeds/list/" key "/od6/public/values?alt=json"))
 
-(defn- atom-feed [key]
-  (str "https://spreadsheets.google.com/feeds/list/" key "/od6/public/values?alt\\u003djson"))
-;"https://spreadsheets.google.com/feeds/list/1vAb70Ti_hMVyxlxgnMNsj5YQhTy4S93L2wscFslmE5w/od6/public/values?alt\\u003djson"
-
-(def url (url sheet-key))
-(def atom-url (atom-feed sheet-key))
-
-(def last-updated (atom {atom-url {:date 0}}))
+(defn last-updated [feed-id] (atom {feed-id {:date 0}}))
 
 (defn- feed-last-updated [feed]
   ((first (feed :entries)) :updated-date))
@@ -31,40 +21,46 @@
 ; what does let binding form do with a (thread) macro?
 
 ; simulate the external service call
-(def entries (feed/parse-feed atom-url))
+;(def entries (feed/parse-feed atom-url))
 (defn get-val []
   (do
     (Thread/sleep 2000)
-    entries))
+    {:key "value"}))
 
-; returns the channel and prints the value it got
-(defn out-ch []
-  (let [ch (thread (get-val))
-        val (<!! ch)]
-    (close! ch)
-    val))
-
-(defn- check-for-update [out-ch atom-url]
+(defn- check-for-update [<out atom-url]
   (let [feed (<!! (thread (feed/parse-feed atom-url)))
-        feed-updated (.getTime (feed-last-updated feed))]
+        feed-updated (.getTime (feed-last-updated feed))
+        entries (feed :entries)]
     (println "polling...")
     (if (> feed-updated (get-in @last-updated [atom-url :date]))
       (do
         (swap! last-updated assoc-in [atom-url :date] feed-updated)
-        (for [e (feed :entries)]
           (do
-            (prn "found an update!" e)
-            (put! out-ch e)))))))
+            (prn "found an update!" entries)
+            (onto-chan <out entries) false)))))
 
 ; schedule:
 (defn start-poller
-  ([out-ch pool] (start-poller out-ch pool 60000))
-  ([out-ch pool t] (every t #(check-for-update out-ch atom-url) pool)))
+  ([feed-url out-ch pool] (start-poller feed-url out-ch pool 60000))
+  ([feed-url out-ch pool t] (every t #(check-for-update out-ch feed-url) pool)))
+
+(defn start-listener [<ch]
+  (go-loop []
+    (let [x (<! <ch)]
+      (if-not (nil? x)
+        (do
+          (prn x)
+          (recur))))))
 
 ; create and return pool
 (def pool (atom {:pool (mk-pool)}))
-
+;(def f (feed/parse-feed atom-url))
+(def c (chan))
 ;(start-poller (@pool :pool) 5000)
 ;(stop 1 (@pool :pool))
+
+;(assoc {}
+;  :value ((first ((first (f :entries)) :contents)) :value)
+;  :title ((first (f :entries)) :title))
 
 ;;
